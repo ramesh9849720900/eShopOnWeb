@@ -24,7 +24,8 @@ public static class ServiceCollectionExtensions
         }
         else
         {
-            var connectionString = configuration["connectionString"];
+            var connectionString = configuration.GetConnectionString("DefaultConnection")
+                               ?? configuration["ConnectionStrings__DefaultConnection"];
 
             services.AddDbContext<CatalogContext>(options =>
                 options.UseNpgsql(connectionString));
