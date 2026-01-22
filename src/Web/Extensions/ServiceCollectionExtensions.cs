@@ -24,22 +24,13 @@ public static class ServiceCollectionExtensions
         }
         else
         {
-            // Configure SQL Server (prod)
-            var credential = new ChainedTokenCredential(new AzureDeveloperCliCredential(), new DefaultAzureCredential());
-            configuration.AddAzureKeyVault(new Uri(configuration["AZURE_KEY_VAULT_ENDPOINT"] ?? ""), credential);
+            var connectionString = configuration["connectionString"];
 
-            services.AddDbContext<CatalogContext>((provider, options) =>
-            {
-                var connectionString = configuration[configuration["AZURE_SQL_CATALOG_CONNECTION_STRING_KEY"] ?? ""];
-                options.UseSqlServer(connectionString, sqlOptions => sqlOptions.EnableRetryOnFailure())
-                .AddInterceptors(provider.GetRequiredService<DbCallCountingInterceptor>());
-            });
-            services.AddDbContext<AppIdentityDbContext>((provider,options) =>
-            {
-                var connectionString = configuration[configuration["AZURE_SQL_IDENTITY_CONNECTION_STRING_KEY"] ?? ""];
-                options.UseSqlServer(connectionString, sqlOptions => sqlOptions.EnableRetryOnFailure())
-                                .AddInterceptors(provider.GetRequiredService<DbCallCountingInterceptor>());
-            });
+            services.AddDbContext<CatalogContext>(options =>
+                options.UseNpgsql(connectionString));
+
+            services.AddDbContext<AppIdentityDbContext>(options =>
+                options.UseNpgsql(connectionString));
         }
     }
 
